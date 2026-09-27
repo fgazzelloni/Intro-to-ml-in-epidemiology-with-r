@@ -4,7 +4,7 @@ This repository contains the reproducible code workflow for a two-hour R-Ladies 
 
 ## Workshop presentation
 
-[Download the workshop presentation](slides/output/introduction-to-ml-in-epidemiology-with-r.pptx).
+[View the workshop presentation](https://fgazzelloni.github.io/Intro-to-ml-in-epidemiology-with-r/).
 
 The workshop follows one question from start to finish:
 
