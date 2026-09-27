@@ -1,0 +1,4 @@
+model,threshold,validation_bacc
+Logistic regression,0.09,0.783072419098874
+Decision tree,0.04,0.672332623981565
+Random forest,0.08,0.813875476155394

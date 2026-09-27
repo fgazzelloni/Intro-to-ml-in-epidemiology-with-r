@@ -1,0 +1,9 @@
+Interpretation guardrails
+=========================
+
+1. Variable importance describes predictive contribution in this fitted model.
+2. It does not estimate a causal effect or identify a modifiable risk factor.
+3. Recent case counts partly reflect surveillance and reporting practices.
+4. State-week predictions do not identify the place where exposure occurred.
+5. The model omits weather, mosquito surveillance, population and intervention data.
+6. Use the 2025 results as a teaching demonstration, not an operational warning system.
