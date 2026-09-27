@@ -2,7 +2,9 @@
 
 This repository contains the reproducible code workflow for a two-hour R-Ladies Rome workshop led by Federica Gazzelloni.
 
-Before the workshop, see the [R-Ladies Rome chapter introduction presentation](https://canva.link/hlxw2in5fwbosy2) for an introduction to the chapter, its community and its activities.
+## Workshop presentation
+
+[Download the workshop presentation](slides/output/introduction-to-ml-in-epidemiology-with-r.pptx).
 
 The workshop follows one question from start to finish:
 
@@ -105,3 +107,5 @@ Federica's 2025 book, *Health Metrics and the Spread of Infectious Diseases*, pr
 See [DATASET_RECOMMENDATION.md](DATASET_RECOMMENDATION.md) for the dataset decision and [references/sources.md](references/sources.md) for sources and caveats.
 
 Learn more about the community on the [R-Ladies Rome website](https://rladiesrome.org/).
+
+Chapter introduction: [R-Ladies Rome presentation](https://canva.link/hlxw2in5fwbosy2).
