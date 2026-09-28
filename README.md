@@ -2,6 +2,8 @@
 
 This repository supports a two-hour R-Ladies Rome workshop led by Federica Gazzelloni.
 
+Before the workshop, see the [R-Ladies Rome chapter introduction presentation](https://www.canva.com/design/DAHWamqing0/frTmZ74PJX4HukjQ-cOn8w/view?utm_content=DAHWamqing0&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=hca030ed1b4) for an introduction to the chapter, its community and its activities.
+
 The workshop uses two complementary files:
 
 1. [`ml-workflow.qmd`](ml-workflow.qmd) is the main teaching file. It explains
