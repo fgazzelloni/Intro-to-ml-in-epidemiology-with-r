@@ -229,7 +229,15 @@ The code follows the repeated pattern:
 predict -> calculate loss-related gradients -> update w and b -> repeat
 ```
 
-This is the essence of learning.
+This is the essence of the learning procedure:
+
+```{r}
+source("app.R")
+shinyApp(
+  ui = ui,
+  server = server
+)
+```
 
 ------------------------------------------------------------------------
 

@@ -1,15 +1,14 @@
 library(rpart)
+library(dplyr)
 
 wnv <- read.csv("data/processed/wnv_state_week.csv")
-wnv <- subset(
-  wnv,
-  week >= 18 & week <= 44,
-  select = c(year, week, cases_last4, active_weeks_last8, activity_next_4w)
-)
+wnv <- wnv %>%
+  filter(week >= 18, week <= 44) %>%
+  select(year, week, cases_last4, active_weeks_last8, activity_next_4w)
 
-names(wnv) <- c(
-  "year", "week", "recent_cases", "recent_active_weeks", "outcome"
-)
+names(wnv) <- c("year", "week", "recent_cases",
+                "recent_active_weeks", "outcome")
+
 wnv$outcome <- factor(wnv$outcome, levels = c("no", "yes"))
 
 table(wnv$outcome)
@@ -21,7 +20,11 @@ tree <- rpart(
   outcome ~ week + recent_cases + recent_active_weeks,
   data = train,
   method = "class",
-  control = rpart.control(maxdepth = 3, minsplit = 30, cp = 0.005)
+  control = rpart.control(
+    maxdepth = 3,
+    minsplit = 30,
+    cp = 0.005
+  )
 )
 
 test$predicted <- predict(tree, newdata = test, type = "class")

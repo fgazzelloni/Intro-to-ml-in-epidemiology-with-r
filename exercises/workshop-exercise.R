@@ -1,15 +1,13 @@
 # Short participant exercise
 
 wnv <- read.csv("data/processed/wnv_state_week.csv")
-wnv <- subset(
-  wnv,
-  week >= 18 & week <= 44,
-  select = c(year, week, cases_last4, active_weeks_last8, activity_next_4w)
-)
+wnv <- wnv %>%
+  filter(week >= 18, week <= 44) %>%
+  select(year, week, cases_last4, active_weeks_last8, activity_next_4w)
 
-names(wnv) <- c(
-  "year", "week", "recent_cases", "recent_active_weeks", "outcome"
-)
+names(wnv) <- c("year", "week", "recent_cases",
+                "recent_active_weeks", "outcome")
+
 wnv$outcome <- factor(wnv$outcome, levels = c("no", "yes"))
 
 # 1. How many observations have outcome "yes" and how many have outcome "no"?
