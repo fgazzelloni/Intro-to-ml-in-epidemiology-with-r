@@ -1,11 +1,15 @@
 # Introduction to Machine Learning in Epidemiology with R
 
-This repository supports a two-hour R-Ladies Rome workshop led by Federica
-Gazzelloni.
+This repository supports a two-hour R-Ladies Rome workshop led by Federica Gazzelloni.
 
-The workshop is an introduction to **machine learning**. Participants use
-one prepared epidemiological dataset and one decision tree to understand the
-main ideas.
+The workshop uses two complementary files:
+
+1. [`ml-workflow.qmd`](ml-workflow.qmd) is the main teaching file. It explains
+   how a model learns and connects the ideas of model, loss, optimisation and
+   learning to an epidemiological prediction problem.
+2. [`R/workshop.R`](R/workshop.R) is the shorter practice script for students.
+   It uses one prepared dataset and one decision tree to follow a complete
+   machine-learning workflow in R.
 
 ## The question
 
@@ -15,51 +19,66 @@ main ideas.
 The purpose is to understand what a model learns, how it makes a prediction and
 why it must be checked on data it has not seen before.
 
-## The workshop workflow
+## Before the workshop
+
+1. Download or clone the repository.
+2. Open `Intro-to-ml-in-epidemiology-with-r.Rproj` in RStudio.
+3. Run `source("install-packages.R")` once.
+4. Run `source("check-setup.R")` and look for `Workshop setup is ready.`
+
+The installation script adds the two packages needed for the student practice:
+`rpart` and `rpart.plot`.
+
+## During the workshop
+
+Start with [`ml-workflow.qmd`](ml-workflow.qmd). This is the instructor-led
+explanation of:
+
+- what a model is;
+- how a loss function measures error;
+- how optimisation supports learning;
+- how the same ideas apply to a West Nile virus prediction problem;
+- how predictions are evaluated on unseen data.
+
+Students then work through [`R/workshop.R`](R/workshop.R), either section by
+section in RStudio or as a complete script:
+
+```r
+source("R/workshop.R")
+```
+
+The practice workflow is:
 
 ```text
 Ask a question
-→ meet the data
-→ define the outcome and predictors
-→ split the data into training and test sets
-→ train one decision tree
-→ make predictions
-→ compare predictions with observed outcomes
-→ discuss limits
+-> meet the data
+-> define the outcome and predictors
+-> split the data into training and test sets
+-> train one decision tree
+-> make predictions
+-> compare predictions with observed outcomes
+-> discuss limits
 ```
 
-The main script uses ordinary R functions and two established package functions:
+The script uses ordinary R functions and two established package functions:
 
 - `rpart()` trains the decision tree;
 - `rpart.plot()` displays the tree.
 
 There are no custom helper functions, model-tuning loops or framework-specific
-task objects in the live workshop.
+task objects in the student practice script.
 
-## Run the workshop code
-
-Install the two packages once, if needed:
-
-```r
-source("install-packages.R")
-```
-
-Then run the complete example:
-
-```r
-source("run-workflow.R")
-```
-
-The code is in [`R/workshop.R`](R/workshop.R). It reads the prepared dataset,
-uses 2022–2024 as training data and keeps 2025 as unseen test data.
+After the guided practice, students can use
+[`exercises/workshop-exercise.R`](exercises/workshop-exercise.R). The completed
+version is in [`solutions/workshop-exercise.R`](solutions/workshop-exercise.R).
 
 ## What participants learn
 
-- Machine learning looks for patterns that help predict an outcome.
+- Machine learning uses data to learn model parameters or structure.
 - The outcome is what we want to predict.
 - Predictors are the information available to the model.
-- Training data are used to learn the pattern.
-- Test data are used to check the pattern on unseen observations.
+- Training data are used to learn patterns.
+- Test data are used to check predictions on unseen observations.
 - A confusion matrix shows correct and incorrect predictions.
 - Prediction is not causation.
 - Surveillance data reflect reporting systems as well as disease occurrence.
@@ -67,45 +86,56 @@ uses 2022–2024 as training data and keeps 2025 as unseen test data.
 ## Repository structure
 
 ```text
-R/workshop.R                    short live-workshop script
+ml-workflow.qmd                  main instructor-led explanation
+R/workshop.R                    student practice workflow
+exercises/workshop-exercise.R   participant exercise
+solutions/workshop-exercise.R   completed exercise
+install-packages.R              student package installation
+check-setup.R                   pre-workshop setup check
 data/processed/                 prepared teaching dataset
-exercises/workshop-exercise.R   short participant exercise
-solutions/workshop-exercise.R   exercise solution
-figures/                        generated teaching figures
-outputs/                        generated predictions and evaluation results
-advanced/                       optional production-style workflow
-app.R                           optional gradient-descent Shiny demonstration
-ml-learning-workflow.qmd        optional conceptual learning companion
+data/raw/                       frozen source-data snapshot
+figures/                        teaching figures
+outputs/                        saved model results
+references/                     article and source notes
+app.R                           optional interactive demonstration
+_bunk/                          earlier drafts and experiments, not used live
 ```
 
-The material in `advanced/` is preserved for instructor reference. It uses
-`mlr3`, three models, temporal resampling, threshold selection and detailed
-evaluation. It is intentionally excluded from the two-hour introduction.
-
-The Shiny demonstration and conceptual notebook are optional teaching
-companions.
+The files in `_bunk/` are retained for reference but are not part of the current
+workshop route.
 
 ## Data and limits
 
 The supplied dataset is derived from the CDC National Notifiable Diseases
 Surveillance System weekly West Nile virus disease data.
 
-- Observation: U.S. state × MMWR week.
-- Workshop weeks: 18–44, when most reported activity occurs.
+- Observation: U.S. state x MMWR week.
+- Workshop weeks: 18-44, when most reported activity occurs.
 - Outcome: whether at least one case is reported in the following four weeks.
 - Predictors: week, recent case count, recent active weeks and census region.
+- Training period: 2022-2024.
+- Test period: 2025.
 
 This is a teaching example, not an operational early-warning system. The counts
 are provisional, reported activity is not the true infection process, and good
 prediction does not establish a causal relationship.
 
-See [`DATASET_RECOMMENDATION.md`](DATASET_RECOMMENDATION.md) for the dataset
-decision and [`references/sources.md`](references/sources.md) for sources.
+See [`data/DATASET_RECOMMENDATION.md`](data/DATASET_RECOMMENDATION.md) for the
+dataset decision and [`references/sources.md`](references/sources.md) for the
+source list. The methodological article used in the teaching material is saved
+as [`references/ml-in-epidemiology-article.pdf`](references/ml-in-epidemiology-article.pdf).
 
-## Context
+## Additional packages for the teaching file
 
-Federica's 2025 book, *Health Metrics and the Spread of Infectious Diseases*,
-includes machine-learning applications in R. Wright et al. (2026), *Machine
-Learning in Epidemiology*, provides a current methodological reference. They are
-introduced as further resources; their more advanced code is not required for
-this introductory session.
+The instructor needs these additional packages to run or render every section
+of `ml-workflow.qmd`:
+
+```r
+install.packages(c(
+  "ggplot2", "dplyr", "data.table", "maps", "pROC",
+  "mlr3", "mlr3learners", "ranger"
+))
+```
+
+These packages are not required for the shorter student practice in
+`R/workshop.R`.
