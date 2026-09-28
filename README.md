@@ -5,8 +5,9 @@ This repository supports a two-hour R-Ladies Rome workshop led by Federica Gazze
 The workshop uses two complementary files:
 
 1. [`ml-workflow.qmd`](ml-workflow.qmd) is the main teaching file. It explains
-   how a model learns and connects the ideas of model, loss, optimisation and
-   learning to an epidemiological prediction problem.
+   how a model learns through loss and optimisation, including a batch gradient
+   descent example, and then connects these ideas to an epidemiological
+   prediction problem.
 2. [`R/workshop.R`](R/workshop.R) is the shorter practice script for students.
    It uses one prepared dataset and one decision tree to follow a complete
    machine-learning workflow in R.
@@ -32,13 +33,41 @@ The installation script adds the two packages needed for the student practice:
 ## During the workshop
 
 Start with [`ml-workflow.qmd`](ml-workflow.qmd). This is the instructor-led
-explanation of:
+explanation and the main workshop narrative.
 
-- what a model is;
-- how a loss function measures error;
-- how optimisation supports learning;
-- how the same ideas apply to a West Nile virus prediction problem;
-- how predictions are evaluated on unseen data.
+### Content of `ml-workflow.qmd`
+
+The teaching file moves from the mechanics of learning to an applied
+epidemiology workflow:
+
+1. **Model, loss, optimisation and learning**: distinguish the model from the
+   measure of error and the procedure used to improve it.
+2. **A small linear-regression example**: begin with a simple model,
+   $\hat{y} = wx + b$, and initial parameter values.
+3. **The loss function**: use mean squared error to measure the difference
+   between observed and predicted values.
+4. **Batch gradient descent**: calculate the gradients, update the slope and
+   intercept, and repeat the process over several epochs as the loss falls.
+5. **Comparison with `lm()`**: check that the parameters learned through
+   gradient descent agree with the fitted linear model from base R.
+6. **Why this matters for epidemiology**: connect the learning cycle to a real
+   public-health prediction question.
+7. **West Nile virus prediction task**: define the features and outcome, then
+   split historical data into training and unseen test periods.
+8. **Logistic regression**: predict the probability of future WNV activity and
+   compare predicted classes with observed outcomes.
+9. **Model comparison**: compare logistic regression, a decision tree and a
+   random forest using the same holdout data.
+10. **Visual evaluation**: inspect ROC curves, confusion matrices and a map of
+    predicted probabilities.
+11. **Interpretation and limits**: discuss generalisation, reporting systems
+    and the difference between prediction and causation.
+
+The central learning cycle is:
+
+```text
+data -> model -> predictions -> loss -> update -> repeat -> evaluation
+```
 
 Students then work through [`R/workshop.R`](R/workshop.R), either section by
 section in RStudio or as a complete script:
@@ -75,6 +104,10 @@ version is in [`solutions/workshop-exercise.R`](solutions/workshop-exercise.R).
 ## What participants learn
 
 - Machine learning uses data to learn model parameters or structure.
+- A loss function measures how far predictions are from observed values.
+- Gradient descent updates model parameters in the direction that reduces loss.
+- An epoch is one complete gradient update using the training data in the batch
+  example.
 - The outcome is what we want to predict.
 - Predictors are the information available to the model.
 - Training data are used to learn patterns.
