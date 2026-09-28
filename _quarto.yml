@@ -1,0 +1,7 @@
+project:
+  type: default
+  output-dir: docs
+  render:
+    - ml-workflow.qmd
+
+output-file: index.html
