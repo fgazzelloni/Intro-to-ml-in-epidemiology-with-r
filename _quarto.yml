@@ -3,5 +3,7 @@ project:
   output-dir: docs
   render:
     - ml-workflow.qmd
+  resources:
+    - presentation/**
 
 output-file: index.html

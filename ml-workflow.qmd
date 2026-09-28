@@ -25,6 +25,13 @@ Perspectives:
 
 The goal is to understand both the mathematical idea of learning and the practical pipeline used in applied work.
 
+## Slide presentation
+
+[Open the 12-slide presentation](presentation/){.btn .btn-primary}
+[Download the editable PowerPoint](presentation/introduction-to-ml-in-epidemiology-with-r.pptx){.btn .btn-outline-primary}
+
+The slide deck introduces the broader multi-model workflow. The model-performance and variable-importance values shown in the deck are illustrative. The executable notebook below contains the observed results.
+
 By the end, we should be able to answer four questions:
 
 1.  What is the model?
@@ -43,7 +50,7 @@ The central message is:
 These terms are connected, but they are not interchangeable.
 
 | Concept      | Question                                | Example               |
-|-----------------|------------------------------------|--------------------|
+|------------------|-----------------------------------|--------------------|
 | Model        | How are inputs turned into predictions? | $\hat y = wx + b$     |
 | Loss         | How wrong are the predictions?          | Mean squared error    |
 | Optimisation | How do we search for a better model?    | Gradient descent      |
@@ -188,6 +195,7 @@ training_loss_history <- data.frame(
 )
 
 starting_prediction <- w * training_data$x + b
+
 training_loss_history[1, ] <- c(
   epoch = 0,
   loss = mse(training_data$y, starting_prediction),
@@ -439,7 +447,10 @@ test_task <- TaskClassif$new(
                       with = FALSE],
   target = "activity_next_4w",
   positive = "yes")
+```
 
+
+```{r}
 learner_logistic <- lrn(
   "classif.log_reg",
   id = "Logistic regression",
@@ -473,7 +484,10 @@ learners <- list(
 fitted <- lapply(learners, function(l) {
   l$clone(deep = TRUE)$train(train_task)
 })
+```
 
+
+```{r}
 holdout_predictions <- rbindlist(lapply(names(fitted), function(model_name) {
   pred <- fitted[[model_name]]$predict(test_task)
   data.table(
@@ -486,6 +500,11 @@ holdout_predictions <- rbindlist(lapply(names(fitted), function(model_name) {
   )
 }))
 
+holdout_predictions
+```
+
+
+```{r}
 summarise_model <- function(df, threshold = 0.5) {
   response <- ifelse(df$probability >= threshold, "yes", "no")
   response <- factor(response, levels = c("no", "yes"))
@@ -513,7 +532,10 @@ summarise_model <- function(df, threshold = 0.5) {
     fn = fn
   )
 }
+```
 
+
+```{r}
 summary_table <- rbindlist(lapply(split(holdout_predictions, by = "model", keep.by = TRUE), function(x) {
   summarise_model(x, threshold = 0.5)
 }), idcol = "model")
