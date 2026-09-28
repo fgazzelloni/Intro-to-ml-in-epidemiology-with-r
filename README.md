@@ -1,111 +1,111 @@
 # Introduction to Machine Learning in Epidemiology with R
 
-This repository contains the reproducible code workflow for a two-hour R-Ladies Rome workshop led by Federica Gazzelloni.
+This repository supports a two-hour R-Ladies Rome workshop led by Federica
+Gazzelloni.
 
-## Workshop presentation
+The workshop is an introduction to **machine learning**. Participants use
+one prepared epidemiological dataset and one decision tree to understand the
+main ideas.
 
-[View the workshop presentation](https://federicagazzelloni.com/Intro-to-ml-in-epidemiology-with-r/).
+## The question
 
-The workshop follows one question from start to finish:
+> Can recent surveillance data help us predict whether a U.S. state will report
+> West Nile virus activity during the next four weeks?
 
-> Can recent surveillance data help us predict whether a U.S. state will report West Nile virus activity during the next four weeks, and how do we judge whether the prediction is useful?
+The purpose is to understand what a model learns, how it makes a prediction and
+why it must be checked on data it has not seen before.
 
-The workflow uses the modern [`mlr3`](https://mlr3.mlr-org.com/) ecosystem and compares three learners:
-
-1. logistic regression as an interpretable baseline;
-2. a decision tree;
-3. a random forest.
-
-The emphasis is the workflow—not a long list of algorithms:
+## The workshop workflow
 
 ```text
-epidemiological question
-→ data and data quality
-→ prediction task
-→ time-aware validation
-→ baseline and flexible models
-→ evaluation on unseen data
-→ interpretation and limitations
+Ask a question
+→ meet the data
+→ define the outcome and predictors
+→ split the data into training and test sets
+→ train one decision tree
+→ make predictions
+→ compare predictions with observed outcomes
+→ discuss limits
 ```
 
-## Data and prediction target
+The main script uses ordinary R functions and two established package functions:
 
-The source is the CDC National Notifiable Diseases Surveillance System (NNDSS) weekly dataset, filtered to `Arboviral diseases, West Nile virus disease`.
+- `rpart()` trains the decision tree;
+- `rpart.plot()` displays the tree.
 
-- Observation: state × MMWR week.
-- Outcome: `yes` when at least one West Nile virus disease case is reported in the following four weeks; otherwise `no`.
-- Predictors: lagged and rolling case counts, recent active weeks, week-of-year seasonality and U.S. census region.
-- Development period: 2022–2024.
-- Unseen test period: 2025.
-- Validation: expanding time windows—2022 predicts 2023, then 2022–2023 predicts 2024.
+There are no custom helper functions, model-tuning loops or framework-specific
+task objects in the live workshop.
 
-The 2026 rows are partial and are never used for model fitting or evaluation. They only provide the four-week outcome for state-weeks at the end of 2025.
+## Run the workshop code
 
-This is a teaching dataset, not an operational early-warning system. NNDSS weekly counts are provisional and can change. Reported surveillance activity is not the same as the true infection process.
-
-## Run the complete workflow
-
-From the project root:
+Install the two packages once, if needed:
 
 ```r
-source("install-packages.R") # only if packages are missing
+source("install-packages.R")
+```
+
+Then run the complete example:
+
+```r
 source("run-workflow.R")
 ```
 
-The repository contains a frozen CDC snapshot so the live workshop does not depend on network access. To refresh it deliberately:
+The code is in [`R/workshop.R`](R/workshop.R). It reads the prepared dataset,
+uses 2022–2024 as training data and keeps 2025 as unseen test data.
 
-```r
-Sys.setenv(REFRESH_CDC_DATA = "true")
-source("run-workflow.R")
-```
+## What participants learn
 
-Refreshing can change results because CDC revises provisional data. Keep the supplied snapshot for a fully repeatable workshop run.
-
-## Code sequence
-
-| Script | Purpose |
-|---|---|
-| `R/00-setup.R` | Check packages, folders and reproducible settings |
-| `R/01-data.R` | Read CDC data, interpret flags, combine New York reporting areas and create leakage-safe features |
-| `R/02-exploration.R` | Examine class balance and seasonality |
-| `R/03-task.R` | Create the `mlr3` task, untouched test year and temporal validation folds |
-| `R/04-logistic-regression.R` | Define the baseline learner |
-| `R/05-decision-tree.R` | Define a shallow decision tree |
-| `R/06-random-forest.R` | Define a reproducible random forest |
-| `R/07-resampling.R` | Compare models with expanding-window validation and choose thresholds without using 2025 |
-| `R/08-evaluation.R` | Train on 2022–2024 and evaluate once on 2025 |
-| `R/09-interpretation.R` | Inspect coefficients, a tree and permutation importance |
+- Machine learning looks for patterns that help predict an outcome.
+- The outcome is what we want to predict.
+- Predictors are the information available to the model.
+- Training data are used to learn the pattern.
+- Test data are used to check the pattern on unseen observations.
+- A confusion matrix shows correct and incorrect predictions.
+- Prediction is not causation.
+- Surveillance data reflect reporting systems as well as disease occurrence.
 
 ## Repository structure
 
 ```text
-R/              modular workshop code
-data/raw/       frozen CDC source snapshot
-data/processed/ generated modelling dataset
-exercises/      participant exercises
-solutions/      complete solutions
-figures/        generated teaching figures
-outputs/        generated tables, predictions and session information
-references/     source and reading notes
+R/workshop.R                    short live-workshop script
+data/processed/                 prepared teaching dataset
+exercises/workshop-exercise.R   short participant exercise
+solutions/workshop-exercise.R   exercise solution
+figures/                        generated teaching figures
+outputs/                        generated predictions and evaluation results
+advanced/                       optional production-style workflow
+app.R                           optional gradient-descent Shiny demonstration
+ml-learning-workflow.qmd        optional conceptual learning companion
 ```
 
-## Teaching messages
+The material in `advanced/` is preserved for instructor reference. It uses
+`mlr3`, three models, temporal resampling, threshold selection and detailed
+evaluation. It is intentionally excluded from the two-hour introduction.
 
-- Prediction is not inference.
-- Prediction is not causation.
-- Variable importance is not causal importance.
-- A more complex model is not automatically better.
-- Performance must be evaluated on data not used to train or tune the model.
-- Random cross-validation would leak temporal information in this example.
-- Sensitivity and specificity depend on the classification threshold; ROC AUC does not choose an operational threshold.
-- Surveillance data reflect reporting systems as well as disease occurrence.
+The Shiny demonstration and conceptual notebook are optional teaching
+companions.
+
+## Data and limits
+
+The supplied dataset is derived from the CDC National Notifiable Diseases
+Surveillance System weekly West Nile virus disease data.
+
+- Observation: U.S. state × MMWR week.
+- Workshop weeks: 18–44, when most reported activity occurs.
+- Outcome: whether at least one case is reported in the following four weeks.
+- Predictors: week, recent case count, recent active weeks and census region.
+
+This is a teaching example, not an operational early-warning system. The counts
+are provisional, reported activity is not the true infection process, and good
+prediction does not establish a causal relationship.
+
+See [`DATASET_RECOMMENDATION.md`](DATASET_RECOMMENDATION.md) for the dataset
+decision and [`references/sources.md`](references/sources.md) for sources.
 
 ## Context
 
-Federica's 2025 book, *Health Metrics and the Spread of Infectious Diseases*, presents machine-learning applications using the earlier `mlr` framework. This workshop carries the same epidemiological-first approach into `mlr3`, the modern successor used by Wright et al. (2026).
-
-See [DATASET_RECOMMENDATION.md](DATASET_RECOMMENDATION.md) for the dataset decision and [references/sources.md](references/sources.md) for sources and caveats.
-
-Learn more about the community on the [R-Ladies Rome website](https://rladiesrome.org/).
-
-Chapter introduction: [R-Ladies Rome presentation](https://canva.link/hlxw2in5fwbosy2).
+Federica's 2025 book, *Health Metrics and the Spread of Infectious Diseases*,
+includes machine-learning applications in R. Wright et al. (2026), *Machine
+Learning in Epidemiology*, provides a current methodological reference. They are
+introduced as further resources; their more advanced code is not required for
+this introductory session.

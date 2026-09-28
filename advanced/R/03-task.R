@@ -1,4 +1,4 @@
-if (!exists("wnv_model_data")) source("R/01-data.R")
+if (!exists("wnv_model_data")) source("advanced/R/01-data.R")
 
 model_features <- c(
   "cases_lag1", "cases_lag2", "cases_lag4", "cases_last4",

@@ -1,4 +1,4 @@
-if (!exists("fitted_learners")) source("R/08-evaluation.R")
+if (!exists("fitted_learners")) source("advanced/R/08-evaluation.R")
 
 forest_importance <- data.table(
   feature = names(fitted_learners[["Random forest"]]$model$variable.importance),
@@ -26,6 +26,7 @@ if (requireNamespace("rpart.plot", quietly = TRUE)) {
     tree_model,
     type = 2,
     extra = 104,
+    roundint = FALSE,
     fallen.leaves = TRUE,
     box.palette = "Purples"
   )

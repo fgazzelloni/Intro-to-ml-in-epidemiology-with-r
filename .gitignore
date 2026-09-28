@@ -4,3 +4,7 @@
 .Rproj.user/
 .codex-build/
 .codex-finalizer/
+
+/.quarto/
+**/*.quarto_ipynb
+/_bunk/

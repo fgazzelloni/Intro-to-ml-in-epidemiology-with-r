@@ -1,0 +1,559 @@
+---
+title: "How a Model Learns"
+subtitle: "From gradient descent to an epidemiology workflow in R"
+author: "Federica Gazzelloni"
+date: "2026-09-28"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    code-fold: false
+    code-tools: true
+    theme: cosmo
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+# Workshop purpose
+
+This notebook is designed for an R-Ladies Rome workshop. It starts with a small linear regression that we can see and code from scratch. It then uses the same ideas to explain how several common machine-learning models learn.
+
+By the end, we should be able to answer four separate questions:
+
+1. **What is the model?** The mathematical form used to make a prediction.
+2. **What is the loss?** A number that measures how wrong the predictions are.
+3. **What is the optimisation procedure?** The method used to improve the model.
+4. **What is learned?** The parameter values or model structure found from the training data.
+
+The central message is:
+
+> Learning means using data to determine a model's parameters or structure. Optimisation is the procedure used to find useful values or structures according to an objective.
+
+# 1. Model, loss, optimisation, and learning
+
+These terms are connected, but they are not interchangeable.
+
+| Concept | Question | Linear regression example |
+|---|---|---|
+| Model | How are inputs turned into predictions? | $\hat y = wx + b$ |
+| Loss | How wrong are the predictions? | Mean squared error |
+| Optimisation | How do we search for a better model? | Batch gradient descent |
+| Learning | What changes because of the data? | The values of $w$ and $b$ |
+
+The learning cycle is:
+
+```text
+training data
+     |
+     v
+make predictions with the current model
+     |
+     v
+calculate the loss
+     |
+     v
+use an optimisation rule to update the model
+     |
+     +-------------------- repeat for another epoch
+```
+
+Optimisation is therefore not an extra step performed after learning. For this model, it is the mechanism through which learning happens.
+
+# 2. A small linear-regression example
+
+We will use eight observations. The values are written directly in the notebook so that the example is reproducible and does not require a download.
+
+```{r}
+#| label: setup
+
+library(ggplot2)
+
+theme_set(theme_minimal(base_size = 13))
+
+training_data <- data.frame(
+  x = 1:8,
+  y = c(2.9, 3.4, 4.5, 5.0, 6.3, 6.7, 7.8, 8.1)
+)
+
+training_data
+```
+
+The model is
+
+$$
+\hat y_i = wx_i + b,
+$$
+
+where:
+
+- $w$ is the slope;
+- $b$ is the intercept;
+- $\hat y_i$ is the prediction for observation $i$.
+
+At the start, we set both parameters to zero. This is not a good fitted model; it is simply a clear starting point.
+
+```{r}
+w <- 0
+b <- 0
+
+training_data$initial_prediction <- w * training_data$x + b
+training_data
+```
+
+# 3. The loss function
+
+We need a way to measure the gap between the observed values and the predictions. Here we use mean squared error:
+
+$$
+\operatorname{MSE}(w,b)
+=
+\frac{1}{n}\sum_{i=1}^{n}\left(\hat y_i-y_i\right)^2.
+$$
+
+```{r}
+mse <- function(observed, predicted) {
+  mean((predicted - observed)^2)
+}
+
+initial_loss <- mse(
+  observed = training_data$y,
+  predicted = training_data$initial_prediction
+)
+
+initial_loss
+```
+
+A loss value tells us how well the current parameters fit the training data. It does not update the parameters by itself.
+
+# 4. Batch gradient descent from scratch
+
+Gradient descent asks: *in which direction should each parameter move to reduce the loss?*
+
+For mean squared error, the gradients are:
+
+$$
+\frac{\partial \operatorname{MSE}}{\partial w}
+=
+\frac{2}{n}\sum_{i=1}^{n}(\hat y_i-y_i)x_i
+$$
+
+and
+
+$$
+\frac{\partial \operatorname{MSE}}{\partial b}
+=
+\frac{2}{n}\sum_{i=1}^{n}(\hat y_i-y_i).
+$$
+
+The update rule is:
+
+$$
+w_{t+1}=w_t-\eta\frac{\partial \operatorname{MSE}}{\partial w},
+\qquad
+b_{t+1}=b_t-\eta\frac{\partial \operatorname{MSE}}{\partial b},
+$$
+
+where $\eta$ is the learning rate.
+
+This is **batch** gradient descent because every update uses all eight training observations.
+
+```{r}
+#| label: batch-gradient-descent
+
+# Starting values: the model has not learned useful coefficients yet.
+w <- 0
+b <- 0
+
+# These are choices made before training.
+learning_rate <- 0.01
+n_epochs <- 5000
+
+# Save the starting state and every later update.
+loss_history <- data.frame(
+  epoch = 0:n_epochs,
+  loss = NA_real_,
+  w = NA_real_,
+  b = NA_real_
+)
+
+starting_prediction <- w * training_data$x + b
+loss_history[1, ] <- c(
+  epoch = 0,
+  loss = mse(training_data$y, starting_prediction),
+  w = w,
+  b = b
+)
+
+for (epoch in 1:n_epochs) {
+  # 1. Predict with the current parameters.
+  prediction <- w * training_data$x + b
+
+  # 2. Measure each prediction error.
+  error <- prediction - training_data$y
+
+  # 3. Calculate the gradients using all observations.
+  gradient_w <- mean(2 * error * training_data$x)
+  gradient_b <- mean(2 * error)
+
+  # 4. Update the parameters.
+  w <- w - learning_rate * gradient_w
+  b <- b - learning_rate * gradient_b
+
+  # 5. Record the state after the update.
+  updated_prediction <- w * training_data$x + b
+  loss_history[epoch + 1, ] <- c(
+    epoch = epoch,
+    loss = mse(training_data$y, updated_prediction),
+    w = w,
+    b = b
+  )
+}
+
+learned_w <- w
+learned_b <- b
+
+data.frame(
+  parameter = c("intercept b", "slope w"),
+  learned_value = c(learned_b, learned_w)
+)
+```
+
+One pass through all training observations is an **epoch**. In this batch example, one epoch produces one parameter update. In mini-batch training, one epoch contains several updates because the data are divided into smaller groups.
+
+The code follows a repeated pattern:
+
+```text
+predict -> calculate loss-related gradients -> update w and b -> repeat
+```
+
+The movement from the starting values to the final values is the learning.
+
+## Inspect selected epochs
+
+```{r}
+epochs_to_show <- c(0, 1, 2, 5, 10, 50, 100, 500, 1000, 5000)
+
+loss_history[loss_history$epoch %in% epochs_to_show, ]
+```
+
+# 5. Show the learning process
+
+## Fitted line
+
+```{r}
+#| label: fitted-line
+#| fig-width: 8
+#| fig-height: 5
+#| fig-alt: "Eight observed points and the fitted lines from gradient descent and lm."
+
+line_data <- data.frame(
+  x = seq(min(training_data$x), max(training_data$x), length.out = 200)
+)
+
+line_data$gradient_descent <- learned_w * line_data$x + learned_b
+
+ggplot(training_data, aes(x = x, y = y)) +
+  geom_point(size = 3, colour = "#6A1B9A") +
+  geom_line(
+    data = line_data,
+    aes(y = gradient_descent),
+    linewidth = 1.1,
+    colour = "#00838F"
+  ) +
+  labs(
+    title = "The model after learning",
+    subtitle = "Batch gradient descent estimates the slope and intercept",
+    x = "x",
+    y = "y",
+    caption = "Purple: observed data | Teal: gradient-descent fit"
+  )
+```
+
+## Learning curve
+
+```{r}
+#| label: learning-curve
+#| fig-width: 8
+#| fig-height: 5
+#| fig-alt: "Training mean squared error falls rapidly and then levels off over one thousand epochs."
+
+ggplot(loss_history, aes(x = epoch, y = loss)) +
+  geom_line(linewidth = 1, colour = "#D81B60") +
+  scale_y_log10() +
+  labs(
+    title = "Training loss across epochs",
+    subtitle = "A logarithmic y-axis makes the later improvements visible",
+    x = "Epoch",
+    y = "Mean squared error (log scale)"
+  )
+```
+
+The curve falls quickly and then flattens. A falling training loss shows that the optimisation procedure is improving the model on the training data. It does **not** by itself prove that the model will perform well on new data. Generalisation must be checked with validation or test data.
+
+# 6. Compare the result with `lm()`
+
+Base R can fit the same linear model directly.
+
+```{r}
+#| label: compare-with-lm
+
+lm_fit <- lm(y ~ x, data = training_data)
+lm_coefficients <- coef(lm_fit)
+
+coefficient_comparison <- data.frame(
+  parameter = c("intercept b", "slope w"),
+  gradient_descent = c(learned_b, learned_w),
+  lm = c(unname(lm_coefficients[1]), unname(lm_coefficients[2]))
+)
+
+coefficient_comparison$difference <-
+  coefficient_comparison$gradient_descent - coefficient_comparison$lm
+
+coefficient_comparison
+```
+
+```{r}
+#| label: verify-result
+
+# The two methods should agree closely for this example.
+stopifnot(
+  abs(learned_b - unname(lm_coefficients[1])) < 0.001,
+  abs(learned_w - unname(lm_coefficients[2])) < 0.001,
+  tail(loss_history$loss, 1) < loss_history$loss[1]
+)
+```
+
+`lm()` and our loop solve the same fitting problem by different numerical routes. The value of the from-scratch loop is educational: it makes prediction, error, gradient, update, epoch, and learning visible.
+
+# 7. How learning changes across model families
+
+Learning is broader than gradient descent. Different model families learn different things and use different search procedures.
+
+| Model family | What is learned from data? | Typical objective or criterion | How learning is performed |
+|---|---|---|---|
+| Linear regression | Intercept and slopes | Squared error | Closed-form or numerical optimisation, including gradient descent |
+| Logistic regression | Intercept and log-odds coefficients | Log loss / negative log-likelihood | Numerical optimisation such as iteratively reweighted least squares or gradient-based methods |
+| Decision tree | Split variables, split thresholds, tree structure, and leaf predictions | Reduction in impurity or loss | Greedy search for locally useful splits; no gradient descent is normally required |
+| Random forest | Many decision trees and their leaf predictions | The tree's splitting criterion | Fit trees on bootstrap samples while considering random subsets of predictors |
+| Neural network | Weights and biases across layers | A differentiable loss such as MSE or cross-entropy | Backpropagation calculates gradients; a gradient-based optimiser updates the parameters |
+| Gradient boosting | A sequence of small learners, often trees | A differentiable loss | Add learners sequentially to follow the negative gradient of the loss |
+
+## Linear and logistic regression
+
+Both models learn coefficients, but they answer different questions.
+
+- Linear regression predicts a continuous outcome.
+- Logistic regression predicts a probability for a binary outcome.
+
+For logistic regression, the linear predictor is passed through the logistic function:
+
+$$
+P(Y=1\mid X)=\frac{1}{1+\exp[-(b+w_1x_1+\cdots+w_px_p)]}.
+$$
+
+The coefficients are learned by optimising a likelihood-based objective rather than ordinary mean squared error.
+
+## Decision trees and random forests
+
+A decision tree learns questions such as:
+
+```text
+recent cases > 0?
+        /       \
+      yes        no
+      /           \
+week > 30?     predict no activity
+```
+
+The fitted structure is part of what the tree learns. A random forest repeats tree learning many times using bootstrap samples and random subsets of predictors, then combines the predictions. It is an ensemble of learned trees, not one set of regression coefficients.
+
+## Neural networks
+
+A neural network may contain thousands or millions of weights. Training keeps the same broad cycle seen in our two-parameter example:
+
+```text
+forward pass -> prediction -> loss -> backpropagation -> optimiser update
+```
+
+Backpropagation and gradient descent have different jobs:
+
+- **Backpropagation** calculates how the loss changes with respect to each weight.
+- **The optimiser** uses those gradients to update the weights.
+
+Stochastic gradient descent, mini-batch gradient descent, Momentum, AdaGrad, RMSProp, and Adam are related gradient-based optimisation methods. Adam is an optimiser; it is not a model.
+
+## Gradient boosting
+
+Gradient boosting uses the gradient idea differently from a neural network. It does not update a large network of weights. It adds a new weak learner at each step, often a small tree, to reduce the current loss. For squared-error loss, this can be understood as fitting the current residuals.
+
+# 8. Parameters and hyperparameters
+
+Parameters and hyperparameters sit on different sides of the training process.
+
+- **Parameters** are learned from the training data.
+- **Hyperparameters** control how the model or training procedure behaves. They are chosen before training or selected through a separate tuning process.
+
+| Model | Parameters learned from data | Example hyperparameters |
+|---|---|---|
+| Linear regression trained by gradient descent | Intercept and slopes | Learning rate, number of epochs |
+| Decision tree | Splits, thresholds, leaf predictions | Maximum depth, minimum node size, complexity penalty |
+| Random forest | All trees, splits, and leaf predictions | Number of trees, predictors tried at each split, minimum node size |
+| Neural network | Layer weights and biases | Number of layers, units per layer, learning rate, batch size, optimiser |
+| Gradient boosting | Sequence of trees and leaf values | Number of boosting rounds, tree depth, learning rate |
+
+In our code:
+
+```r
+# Learned parameters
+w
+b
+
+# Hyperparameters chosen before training
+learning_rate
+n_epochs
+```
+
+Choosing a hyperparameter on the test set leaks information from the test set into model development. The test set should remain unseen until the final evaluation.
+
+# 9. Bridge to `mlr3`
+
+The from-scratch loop helps us understand what training means. A machine-learning framework then gives us consistent objects for tasks, learners, predictions, resampling, measures, and tuning.
+
+The same small regression can be expressed in `mlr3` as follows. This chunk runs when `mlr3` and `mlr3learners` are installed; otherwise it prints an installation note and allows the rest of the notebook to render.
+
+```{r}
+#| label: mlr3-bridge
+
+if (
+  requireNamespace("mlr3", quietly = TRUE) &&
+  requireNamespace("mlr3learners", quietly = TRUE)
+) {
+  task <- mlr3::as_task_regr(training_data[, c("x", "y")], target = "y")
+  learner <- mlr3::lrn("regr.lm")
+
+  learner$train(task)
+  prediction <- learner$predict(task)
+
+  print(task)
+  print(learner)
+  print(prediction$score(mlr3::msr("regr.mse")))
+} else {
+  message(
+    "Optional bridge not run. Install mlr3 and mlr3learners to execute it."
+  )
+}
+```
+
+The conceptual mapping is:
+
+| Our from-scratch example | `mlr3` object |
+|---|---|
+| Data plus the outcome to predict | Task |
+| Model and training method | Learner |
+| Fitted parameter values | Trained learner state |
+| Predictions from the fitted line | Prediction object |
+| Mean squared error | Measure |
+| Repeated evaluation on held-out data | Resampling |
+
+`mlr3` does not change the meaning of learning. It organises the workflow and makes comparisons and evaluation more systematic.
+
+# 10. Bridge to the epidemiology workshop
+
+The planned two-hour epidemiology workshop asks:
+
+> Can recent surveillance data help us predict whether a U.S. state will report West Nile virus activity during the next four weeks?
+
+Its prepared data use a state-week as the observational unit. The outcome is whether activity is reported in the next four weeks. The live predictors are week, recent cases, recent active weeks, and census region.
+
+The progression from this notebook is:
+
+```text
+small linear regression
+  -> see two parameters change
+  -> understand loss, optimisation, epochs, and learning
+  -> meet a decision tree that learns visible rules
+  -> train on 2022-2024 surveillance data
+  -> test on unseen 2025 data
+  -> discuss prediction, imbalance, surveillance bias, and causality
+  -> use mlr3 later for resampling, model comparison, and tuning
+```
+
+For the live two-hour workshop, the code should remain simple: ordinary R plus one shallow `rpart` decision tree. This keeps attention on outcome, predictors, training data, unseen test data, and interpretation. `mlr3`, several learners, temporal resampling, threshold selection, and tuning are valuable advanced follow-on topics, not requirements for the first session.
+
+The project-specific shape of the live model is:
+
+```{r}
+#| eval: false
+#| label: planned-epidemiology-workflow
+
+# Run this code from the epidemiology workshop project, where the prepared
+# West Nile virus dataset is available.
+
+wnv <- read.csv("data/processed/wnv_state_week.csv")
+
+wnv <- subset(wnv, week >= 18 & week <= 44)
+wnv <- wnv[, c(
+  "state", "region", "year", "week",
+  "cases_last4", "active_weeks_last8", "activity_next_4w"
+)]
+
+names(wnv) <- c(
+  "state", "region", "year", "week",
+  "recent_cases", "recent_active_weeks", "outcome"
+)
+
+wnv$region <- factor(wnv$region)
+wnv$outcome <- factor(wnv$outcome, levels = c("no", "yes"))
+
+train <- subset(wnv, year <= 2024)
+test <- subset(wnv, year == 2025)
+
+tree <- rpart::rpart(
+  outcome ~ week + recent_cases + recent_active_weeks + region,
+  data = train,
+  method = "class",
+  control = rpart::rpart.control(maxdepth = 3, minsplit = 40, cp = 0.01)
+)
+
+predicted <- predict(tree, newdata = test, type = "class")
+table(Observed = test$outcome, Predicted = predicted)
+```
+
+In that example, learning means finding the tree's split variables, thresholds, branches, and leaf predictions from the 2022--2024 training data. The year 2025 is reserved to check how the learned pattern works on observations not used for training.
+
+::: {.callout-warning}
+## Prediction is not causation
+
+A model can predict reported West Nile virus activity without identifying its causes. Surveillance data also reflect reporting delays, reporting practices, missingness, and the design of the surveillance system. A technically correct model can still answer the wrong epidemiological question.
+:::
+
+# 11. Workshop discussion prompts
+
+1. What exactly changed during our gradient-descent loop?
+2. Why is the learning rate a hyperparameter rather than a learned parameter?
+3. What might happen if the learning rate is much too large or much too small?
+4. Why does a falling training loss not guarantee useful predictions on new data?
+5. What does a decision tree learn that linear regression does not?
+6. Why should 2025 remain unseen while the West Nile model is trained?
+7. Which patterns in surveillance data may come from the reporting system rather than disease transmission?
+
+# 12. Key messages
+
+- A model defines how inputs become predictions.
+- A loss function measures prediction error according to a chosen objective.
+- An optimisation procedure searches for a better fitted model.
+- Learning is the change in parameters or structure produced from training data.
+- Gradient descent is an optimiser, not a neural network.
+- Backpropagation calculates gradients; an optimiser uses them.
+- Trees learn splits and structure without ordinary gradient descent.
+- Parameters are learned inside training; hyperparameters control training or model complexity.
+- Training performance and performance on unseen data are different questions.
+- In epidemiology, prediction does not establish causation.
+
+# 13. Reproducibility information
+
+```{r}
+sessionInfo()
+```

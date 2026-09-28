@@ -1,0 +1,5 @@
+"Actual","Predicted","Freq"
+"no","no",1187
+"yes","no",97
+"no","yes",31
+"yes","yes",62

@@ -1,6 +1,6 @@
 workshop_packages <- c(
   "data.table", "ggplot2", "mlr3", "mlr3learners", "pROC",
-  "ranger", "rpart", "scales"
+  "ranger", "rpart", "scales", "maps"
 )
 
 check_workshop_packages <- function(packages = workshop_packages) {

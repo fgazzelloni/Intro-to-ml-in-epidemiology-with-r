@@ -1,6 +1,6 @@
-if (!exists("learner_logistic")) source("R/04-logistic-regression.R")
-if (!exists("learner_tree")) source("R/05-decision-tree.R")
-if (!exists("learner_forest")) source("R/06-random-forest.R")
+if (!exists("learner_logistic")) source("advanced/R/04-logistic-regression.R")
+if (!exists("learner_tree")) source("advanced/R/05-decision-tree.R")
+if (!exists("learner_forest")) source("advanced/R/06-random-forest.R")
 
 learners <- list(learner_logistic, learner_tree, learner_forest)
 names(learners) <- vapply(learners, function(x) x$id, character(1))

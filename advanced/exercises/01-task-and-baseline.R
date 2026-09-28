@@ -1,7 +1,7 @@
 # Exercise 1: define a classification task and train the baseline
 
-source("R/00-setup.R")
-source("R/01-data.R")
+source("advanced/R/00-setup.R")
+source("advanced/R/01-data.R")
 
 development <- wnv_model_data[year <= 2024L]
 

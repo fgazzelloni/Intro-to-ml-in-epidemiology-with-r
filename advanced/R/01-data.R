@@ -1,7 +1,7 @@
 # Prepare a state-week West Nile prediction dataset from the frozen CDC snapshot.
 # Set REFRESH_CDC_DATA=true to replace the snapshot with the current API result.
 
-if (!exists("workshop_packages")) source("R/00-setup.R")
+if (!exists("workshop_packages")) source("advanced/R/00-setup.R")
 
 raw_path <- "data/raw/cdc_nndss_wnv_weekly_2022_2026.csv"
 processed_path <- "data/processed/wnv_state_week.csv"

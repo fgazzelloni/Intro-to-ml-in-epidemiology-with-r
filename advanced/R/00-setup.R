@@ -1,4 +1,4 @@
-source("R/utils.R")
+source("advanced/R/utils.R")
 
 check_project_root()
 check_workshop_packages()

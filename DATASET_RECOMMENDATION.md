@@ -12,12 +12,15 @@ The CDC weekly table is the strongest practical fit for this workshop because it
 
 - directly connected to infectious-disease surveillance;
 - available through a documented public API;
-- large enough for a train/validation/test workflow;
-- naturally temporal, so participants can see why validation design matters;
+- large enough for a simple training/test demonstration;
+- naturally temporal, so participants can understand the idea of unseen data;
 - small enough to run quickly during a live two-hour session;
-- compatible with logistic regression, a decision tree and a random forest.
+- compatible with a small, visually explainable decision tree.
 
-The final modelling table has 10,239 complete state-week observations for 2022–2025. The outcome is intentionally imbalanced: about 5–7% of state-weeks are positive depending on year. That makes sensitivity, specificity, thresholds and ROC AUC meaningful teaching topics.
+The prepared table has 10,239 complete state-week observations for 2022–2025.
+The live workshop keeps weeks 18–44 and uses the class imbalance to explain why
+accuracy alone is not enough. Threshold selection, ROC AUC and cross-validation
+are reserved for later study.
 
 ## Candidate comparison
 
@@ -41,20 +44,22 @@ The final modelling table has 10,239 complete state-week observations for 2022�
 - **Time unit:** MMWR week.
 - **Geographic handling:** New York State and New York City rows are combined into one New York total.
 - **Target:** `activity_next_4w = yes` if the sum of reported cases in weeks `t+1` through `t+4` is greater than zero.
-- **Predictors:** cases at lags 1, 2 and 4; case totals over the previous 4 and 8 weeks; number of active weeks in the previous 8 weeks; sine and cosine of MMWR week; census region.
-- **Development data:** 2022–2024.
-- **Temporal validation:** train on 2022/test on 2023, then train on 2022–2023/test on 2024.
-- **Final holdout:** 2025, evaluated once after model and threshold choices.
+- **Predictors shown in the workshop:** week, cases in the previous four weeks,
+  number of active weeks in the previous eight weeks and census region.
+- **Training data:** 2022–2024.
+- **Test data:** 2025, used to demonstrate evaluation on unseen observations.
 - **Excluded:** partial 2026 predictors and targets, aggregate regions, territories, national totals, future variables and CDC cumulative/previous-52-week fields.
 
 ## Leakage controls
 
 1. No same-week or future case count is used as a predictor.
 2. Rolling features are calculated after shifting the case series by one week.
-3. Temporal validation always trains on years earlier than the validation year.
-4. The classification threshold is selected from 2023–2024 validation predictions.
-5. The 2025 holdout is not used to select features, models or thresholds.
-6. The 2026 partial year supplies only labels for late-2025 rows and never enters model fitting.
+3. The simple split trains on earlier years and tests on 2025.
+4. The 2025 observations are not used to fit the tree.
+5. The 2026 partial year supplies only labels for late-2025 rows and never enters model fitting.
+
+The more detailed controls used in the original production-style workflow are
+documented in `advanced/` and are not taught in the two-hour introduction.
 
 ## Important limits
 

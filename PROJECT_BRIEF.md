@@ -1,330 +1,105 @@
-# Intro to Machine Learning in Epidemiology with R
+# Introduction to Machine Learning in Epidemiology with R
 
-## Project purpose
+## Revised scope after code review
 
-Develop a 2-hour R-Ladies Rome workshop introducing machine learning in epidemiology using R.
+This is a two-hour introduction to machine learning, not an advanced R coding
+course. The earlier workflow was too articulated for the available time: it
+combined custom helper functions, three models, temporal resampling, threshold
+selection and several evaluation procedures.
 
-The workshop should be practical, reproducible, accessible to participants who know basic R, and grounded in a real epidemiological problem rather than being a generic introduction to machine-learning algorithms.
+The revised workshop uses one prepared dataset, one small decision tree and
+short blocks of ordinary R code. The code supports the explanation; it is not
+the main teaching subject.
 
-## Main methodological reference
+## Purpose
 
-Wright et al. (2026)
-"Machine Learning in Epidemiology"
-arXiv:2602.16352
+Help participants with basic R knowledge understand what supervised machine
+learning does in an epidemiological setting.
 
-https://arxiv.org/abs/2602.16352
+By the end, participants should be able to explain:
 
-Use the paper as a methodological reference, but do not simply reproduce its examples.
+1. what an outcome and a predictor are;
+2. why data are divided into training and test sets;
+3. what a model learns from training data;
+4. how predictions are compared with observed outcomes;
+5. why prediction is not causation.
 
-The paper uses the `mlr3` ecosystem and covers:
-- supervised learning
-- classification
-- decision trees
-- ensemble methods
-- resampling
-- model evaluation
-- hyperparameter tuning
-- interpretable machine learning
-- unsupervised learning
-- neural networks and generative methods
+## Teaching question
 
-For this 2-hour introductory workshop, concentrate on the core supervised-learning workflow.
+Can recent surveillance data help us predict whether a U.S. state will report
+West Nile virus activity during the next four weeks?
 
-## Instructor
+## Dataset
 
-Federica Gazzelloni
+Use the prepared CDC NNDSS West Nile virus state-week dataset already included
+in the repository. Do not teach the raw-data engineering during the live
+session.
 
-Actuary, statistician, data scientist, author and instructor.
-Founder/organiser of R-Ladies Rome.
+For clarity, use only mosquito-season weeks and these variables:
 
-Federica is the author of:
+- `week`;
+- `recent_cases`;
+- `recent_active_weeks`;
+- `region`;
+- `outcome`.
 
-"Health Metrics and the Spread of Infectious Diseases:
-Machine Learning Applications and Spatial Modelling Analysis with R"
-CRC Press, 2025.
+Use 2022–2024 for training and 2025 for testing. This makes the idea of unseen
+data concrete without teaching cross-validation.
 
-The book includes practical machine-learning applications using the
-`mlr` framework.
+## Model
 
-The workshop should explicitly connect:
+Use one shallow decision tree with `rpart()`.
 
-Federica's book / `mlr`
-        ↓
-modern `mlr3` ecosystem
-        ↓
-Machine Learning in Epidemiology (2026)
-        ↓
-practical epidemiological application
+A tree is suitable for the introduction because participants can see its
+questions and follow a prediction from the top of the tree to a final class.
+Random forests, tuning and model comparison are out of scope.
 
-This connection should appear naturally in the workshop rather than
-as a promotional interruption.
+## Code principles
 
-## Proposed title
+- One main script: `R/workshop.R`.
+- No custom helper functions.
+- No `mlr3` task, learner, resampling or benchmark objects in the live code.
+- No tuning loops.
+- Use familiar base R functions such as `read.csv()`, `subset()`, `table()` and
+  `predict()`.
+- Use `rpart()` to fit the tree and `rpart.plot()` to display it.
+- Keep each code block connected to one teaching idea.
 
-Introduction to Machine Learning in Epidemiology with R
+## Two-hour structure
 
-Subtitle:
+```text
+00–10  Welcome and R-Ladies Rome introduction
+10–25  What machine learning is—and is not
+25–40  Meet the West Nile surveillance dataset
+40–55  Outcome, predictors, observations and the prediction question
+55–70  Training data and unseen test data
+70–90  Train and visualise one decision tree
+90–105 Make predictions and read a confusion matrix
+105–115 Interpretation, imbalance, surveillance bias and causality
+115–120 Key messages, resources and questions
+```
 
-From epidemiological questions to prediction, evaluation and interpretation
+## Essential messages
 
-## Central question
+- Machine learning learns patterns from examples in data.
+- Performance must be checked on observations not used for training.
+- Accuracy alone can be misleading when the outcome is uncommon.
+- Prediction is not inference.
+- Prediction is not causation.
+- Surveillance data reflect reporting systems as well as disease occurrence.
+- A technically correct model can still answer the wrong epidemiological
+  question.
 
-Can we use epidemiological data to predict a health outcome, and how
-do we determine whether the resulting prediction is trustworthy?
+## Further study
 
-## Core conceptual workflow
+The earlier production-style workflow is preserved in `advanced/`. It is useful
+after the workshop for readers who want `mlr3`, multiple models, temporal
+resampling, threshold selection and more detailed evaluation.
 
-Epidemiological question
-        ↓
-Data
-        ↓
-Define prediction task
-        ↓
-Train/test strategy
-        ↓
-Baseline model
-        ↓
-Machine-learning models
-        ↓
-Resampling
-        ↓
-Evaluation
-        ↓
-Interpretation
-        ↓
-Epidemiological conclusions
+Main references:
 
-## Models
-
-Use three models to demonstrate increasing flexibility:
-
-1. Logistic regression
-2. Decision tree
-3. Random forest
-
-The point is NOT to teach many algorithms.
-
-The central comparison should be:
-
-Does increasing model complexity improve prediction on unseen data?
-
-## R framework
-
-Prefer `mlr3` for the main implementation.
-
-Use the mlr3 conceptual structure:
-
-Task
-→ Learner
-→ Train
-→ Predict
-→ Evaluate
-
-Example learners:
-
-lrn("classif.log_reg")
-lrn("classif.rpart")
-lrn("classif.ranger")
-
-Explain briefly that Federica's book uses `mlr`, while `mlr3` is the
-newer ecosystem and is also used by the 2026 reference study.
-
-## Dataset decision
-
-Investigate three possibilities before selecting the final dataset.
-
-### Preferred candidate: West Nile virus
-
-Look for an open, reproducible epidemiological dataset suitable for
-a classification problem.
-
-Possible observational units:
-
-county × week
-county × year
-state × week
-state × year
-
-Potential target:
-
-elevated West Nile activity: yes/no
-
-Potential predictors may include:
-
-- previous cases/incidence
-- geography
-- time
-- population
-- mosquito surveillance
-- temperature
-- precipitation
-- other appropriate surveillance variables
-
-Do NOT construct a target or predictors that introduce data leakage.
-
-### Alternative: Ebola
-
-Investigate open Ebola outbreak datasets.
-
-Use Ebola only if there is a clear observational unit, sufficiently
-large sample, defensible prediction target and reproducible data source.
-
-Avoid turning the workshop into an outbreak-modelling workshop.
-
-### Fallback: Heart Disease
-
-The Wright et al. paper uses the Heart Disease dataset.
-
-This is the safest fallback because the ML workflow has already been
-demonstrated and the data are readily available.
-
-However, an infectious-disease dataset is preferred because it connects
-more naturally with Federica's book and epidemiological work.
-
-## Dataset evaluation criteria
-
-Before selecting the dataset, compare candidates on:
-
-- source
-- licence
-- accessibility from R
-- number of observations
-- outcome variable
-- predictors
-- missingness
-- class balance
-- geographic granularity
-- temporal granularity
-- reproducibility
-- risk of data leakage
-- suitability for cross-validation
-- epidemiological relevance
-- suitability for a live 2-hour workshop
-
-Do not choose a dataset merely because it is interesting.
-
-The complete analysis must run reliably during a live workshop.
-
-## Proposed 2-hour structure
-
-00–10  R-Ladies Rome introduction
-
-10–20  What is machine learning in epidemiology?
-
-20–25  Machine learning with R:
-       mlr → mlr3 → reference paper
-
-25–40  Meet the epidemiological dataset and formulate the
-       prediction problem
-
-40–55  Logistic regression as a baseline
-
-55–70  Decision tree
-
-70–85  Random forest
-
-85–100 Model evaluation:
-       cross-validation
-       ROC/AUC
-       sensitivity
-       specificity
-       confusion matrix
-
-100–110 Model interpretation:
-        feature importance
-        optionally one PDP/ALE example
-
-110–117 What machine learning can and cannot tell epidemiologists
-
-117–120 Resources, conclusions and Q&A
-
-## Important epidemiological messages
-
-Prediction is not inference.
-
-Prediction is not causation.
-
-Variable importance is not causal importance.
-
-Good predictive performance does not establish that predictors cause
-the outcome.
-
-Observed surveillance data are not necessarily equivalent to the true
-disease process.
-
-Data quality, representativeness, missingness and surveillance bias
-matter even when the machine-learning pipeline is technically correct.
-
-A more complex model is not automatically a better model.
-
-Evaluation must concern performance on unseen data rather than training
-performance.
-
-## Teaching style
-
-Follow R-Ladies Rome workshop style:
-
-- welcoming and accessible
-- practical
-- code-led
-- reproducible
-- epidemiological question first, algorithm second
-- explain concepts visually before introducing code
-- avoid unnecessary mathematical notation
-- short blocks of code
-- frequent interpretation of results
-- show what can go wrong
-- leave participants with reusable R code
-
-The workshop should be understandable to someone with basic R knowledge
-but no formal machine-learning background.
-
-## Intended repository structure
-
-README.md
-slides/
-data/
-R/
-exercises/
-solutions/
-figures/
-references/
-
-Possible R scripts:
-
-R/
-  01-data.R
-  02-exploration.R
-  03-task.R
-  04-logistic-regression.R
-  05-decision-tree.R
-  06-random-forest.R
-  07-resampling.R
-  08-evaluation.R
-  09-interpretation.R
-
-## Final resources
-
-Include:
-
-1. Wright et al. (2026), Machine Learning in Epidemiology
-2. Federica Gazzelloni (2025),
-   Health Metrics and the Spread of Infectious Diseases:
-   Machine Learning Applications and Spatial Modelling Analysis with R
-3. mlr3 documentation
-4. workshop repository
-5. original dataset documentation and citation
-
-## Immediate next task
-
-Do NOT start building slides yet.
-
-First:
-
-1. Investigate available West Nile datasets.
-2. Investigate suitable Ebola datasets.
-3. Examine the dataset/code used by Wright et al.
-4. Compare the three options systematically.
-5. Recommend the best dataset for the workshop.
-6. Define the exact prediction target and observational unit.
-7. Only after this decision, construct the reproducible R workflow.
+1. Wright et al. (2026), *Machine Learning in Epidemiology*.
+2. Federica Gazzelloni (2025), *Health Metrics and the Spread of Infectious
+   Diseases: Machine Learning Applications and Spatial Modelling Analysis with
+   R*.
+3. CDC NNDSS weekly data documentation.

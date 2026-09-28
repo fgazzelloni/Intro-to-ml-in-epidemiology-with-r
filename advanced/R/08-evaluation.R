@@ -1,4 +1,4 @@
-if (!exists("resample_results")) source("R/07-resampling.R")
+if (!exists("resample_results")) source("advanced/R/07-resampling.R")
 
 fitted_learners <- lapply(learners, function(learner) {
   learner <- learner$clone(deep = TRUE)
